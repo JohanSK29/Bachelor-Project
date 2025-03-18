@@ -9,7 +9,7 @@ gamma_discount_factor = 0.95
 #Learning parameter
 alpha = 0.3
 #Decay parameter for Epsilon
-theta = 0.00072
+theta = 0.0000275
 
 #define the price array which will also be the actions vector 
 def price_array(k):
@@ -118,8 +118,12 @@ def simulation_q_learning(T,k):
     p2_current_index = np.random.randint(number_of_actions)
 
     # save the average running profit for each player. The average is taken over 100 time steps
-    running_profit_1 = []
-    running_profit_2 = []
+    running_average_profit_1 = []
+    running_average_profit_2 = []
+
+    cumulative_profit_1 = 0
+    cumulative_profit_2 = 0 
+
     for t in range(T):
         if (t%2) ==0:
             Q1,p2_current_index,p1_old_index,p1_current_index =seq_q_step(Q1,
@@ -128,8 +132,10 @@ def simulation_q_learning(T,k):
             p2_current_index,
             t,
             action_vector)
-            if  t>9950 and t<10000:
-                running_profit_1.append(profit(action_vector[p1_current_index],action_vector[p2_current_index]))
+            #average profit over 100 time steps, this is not the same as the average profit over the whole simulation
+            profit_1 = profit(action_vector[p1_current_index], action_vector[p2_current_index])
+            cumulative_profit_1 += profit_1
+            running_average_profit_1.append(cumulative_profit_1 / (t + 1))
         else: 
             Q2,p1_current_index,p2_old_index,p2_current_index =seq_q_step(Q2,
             p2_current_index,
@@ -137,16 +143,72 @@ def simulation_q_learning(T,k):
             p1_current_index,
             t,
             action_vector)
-        
+            profit_2 = profit(action_vector[p2_current_index], action_vector[p1_current_index])
+            cumulative_profit_2 += profit_2
+            running_average_profit_2.append(cumulative_profit_2 / (t + 1))
 
             #if we want to store action do it hea
 
-    return Q1,Q2, running_profit_1
+    return Q1,Q2, running_average_profit_1, running_average_profit_2
 
 #Run a test simulation
-Q1,Q2,r1 = simulation_q_learning(T,7)
-print(Q1)
-print(Q2)
-print(r1)
+# Q1,Q2,r1 = simulation_q_learning(T,7)
+# print(Q1)
+# print(Q2)
+# print(r1)
 
+# Test the simulation with running averages
+def test_simulation_q_learning_with_running_average():
+    T = 100  # Use a smaller T for testing
+    k = 10
+    Q1, Q2, running_average_profit_1, running_average_profit_2 = simulation_q_learning(T, k)
+
+    # Check that the running averages have the correct length
+    assert len(running_average_profit_1) == T/2
+    assert len(running_average_profit_2) == T/2
+
+    # Check that the running averages are non-negative
+    assert all(p >= 0 for p in running_average_profit_1)
+    assert all(p >= 0 for p in running_average_profit_2)
+
+    # Print the final running averages for visual inspection
+    print("Final running average profit for Player 1:", running_average_profit_1[-1])
+    print("Final running average profit for Player 2:", running_average_profit_2[-1])
+
+
+# Run the test
+test_simulation_q_learning_with_running_average()
+
+
+import matplotlib.pyplot as plt
+
+def plot_running_averages(running_average_profit_1, running_average_profit_2):
+    """
+    Plots the running average profits for both players.
+
+    Parameters:
+    running_average_profit_1 (list): Running average profits for Player 1.
+    running_average_profit_2 (list): Running average profits for Player 2.
+    """
+    plt.figure(figsize=(10, 6))
+    plt.plot(running_average_profit_1, label="Player 1", color="blue")
+    plt.plot(running_average_profit_2, label="Player 2", color="red")
+    plt.xlabel("Time Steps (T/2)")
+    plt.ylabel("Running Average Profit")
+    plt.title("Running Average Profits Over Time")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+# Example usage after running the simulation
+def test_simulation_q_learning_with_graph():
+    T = 100  # Use a smaller T for testing
+    k = 10
+    Q1, Q2, running_average_profit_1, running_average_profit_2 = simulation_q_learning(T, k)
+
+    # Plot the running averages
+    plot_running_averages(running_average_profit_1, running_average_profit_2)
+
+# Run the test with graphing
+test_simulation_q_learning_with_graph()
 

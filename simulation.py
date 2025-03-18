@@ -33,7 +33,8 @@ def current_epsilon_value(t,theta=theta):
 
 #Exploration selection
 
-def action_choice(Q, current_state_index, action_vector,t):
+#def action_choice(Q, current_state_index, action_vector,t):
+def action_choice(Q, current_state_index,t):
     "Epsilon greedy selection"
     current_epsilon= current_epsilon_value(t)
     num_actions = Q.shape[0]
@@ -45,7 +46,6 @@ def action_choice(Q, current_state_index, action_vector,t):
         return np.argmax(Q[:,current_state_index])
         # max_index = np.argmax(Q[:,current_state_index])
         # return action_vector(max_index)
-
 #Exploration selection
 
 def demand(pi,pj):

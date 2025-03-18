@@ -23,6 +23,11 @@ def current_epsilon_value(t,theta=theta):
 #NOTES: A Q table is Action X States matrix, where a action is a price, (Klein 2021), 
 #which differs from Julius but not the other BA project (Morten and Johanne)
 #Notes current_state corresponds to the index of the current state
+# Under the markow assumption a players state is just the other players price and therefore actions
+# Since the Players are only two and have the same number of actions, this will be a Q = AxA  matrix or 
+#Q = PriceXPrice matrix
+# This note is important for explaining in the BA.
+
 #Exploration selection
 
 def action_choice(Q, current_state, action_vector,t):
@@ -34,7 +39,6 @@ def action_choice(Q, current_state, action_vector,t):
     else: 
         max_index = np.argmax(Q[:,current_state])
         return action_vector(max_index)
-
 
 
 def demand(pi,pj):

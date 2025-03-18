@@ -33,6 +33,21 @@ def current_epsilon_value(t,theta=theta):
 
 #Exploration selection
 
+def action_choice(Q, current_state_index, action_vector,t):
+    "Epsilon greedy selection"
+    current_epsilon= current_epsilon_value(t)
+    num_actions = Q.shape[0]
+    if np.random.uniform(0,1) < current_epsilon:
+        return np.random.randint(num_actions)
+
+        # return np.random.choice(action_vector)
+    else: 
+        return np.argmax(Q[:,current_state_index])
+        # max_index = np.argmax(Q[:,current_state_index])
+        # return action_vector(max_index)
+
+#Exploration selection
+
 def demand(pi,pj):
     if pi < pj:
         d = 1-pi

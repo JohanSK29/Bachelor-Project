@@ -25,21 +25,13 @@ def current_epsilon_value(t,theta=theta):
 #Notes current_state corresponds to the index of the current state
 # Under the markow assumption a players state is just the other players price and therefore actions
 # Since the Players are only two and have the same number of actions, this will be a Q = AxA  matrix or 
-#Q = PriceXPrice matrix
+# Q = PriceXPrice matrix
 # This note is important for explaining in the BA.
+# Should our Q-learning go back in time more than just the previous state, maybe 2 or 3, 
+# it would break markow assumption but maybe there is somehting here
+# Also we could explore if the player does not have the same price room as the other and see what then will happen
 
 #Exploration selection
-
-def action_choice(Q, current_state, action_vector,t):
-    "Epsilon greedy selection"
-    current_epsilon= current_epsilon_value(t)
-
-    if np.random.uniform(0,1) < current_epsilon:
-        return np.random.choice(action_vector)
-    else: 
-        max_index = np.argmax(Q[:,current_state])
-        return action_vector(max_index)
-
 
 def demand(pi,pj):
     if pi < pj:

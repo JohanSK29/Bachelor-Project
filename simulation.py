@@ -20,14 +20,22 @@ def current_epsilon_value(t,theta=theta):
     epsilon = (1-theta)**t
     return epsilon
 
+#NOTES: A Q table is Action X States matrix, where a action is a price, (Klein 2021), 
+#which differs from Julius but not the other BA project (Morten and Johanne)
+#Notes current_state corresponds to the index of the current state
 #Exploration selection
+
 def action_choice(Q, current_state, action_vector,t):
     "Epsilon greedy selection"
     current_epsilon= current_epsilon_value(t)
+
     if np.random.uniform(0,1) < current_epsilon:
         return np.random.choice(action_vector)
     else: 
-        return print("Lortepik")
+        max_index = np.argmax(Q[:,current_state])
+        return action_vector(max_index)
+
+
 
 def demand(pi,pj):
     if pi < pj:

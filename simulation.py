@@ -13,7 +13,7 @@ theta = 0.00072
 
 #define the price array which will also be the actions vector 
 def price_array(k):
-    return np.linspace(0,1,k+1)
+    return np.linspace(0,1,k)
 
 #Episilon exploration parameter function. 
 def current_epsilon_value(t,theta=theta):
@@ -46,7 +46,7 @@ def action_choice(Q, current_state_index,t):
         return np.argmax(Q[:,current_state_index])
         # max_index = np.argmax(Q[:,current_state_index])
         # return action_vector(max_index)
-#Exploration selection
+
 
 def demand(pi,pj):
     if pi < pj:
@@ -60,18 +60,93 @@ def demand(pi,pj):
 def profit(pi,pj):
     return pi * demand(pi,pj)
 
-
-def seq_q_step(Q, current_state, action_vector, t, Price_current_agent, Price_opponent, 
-gamma = gamma_discount_factor, alpha = alpha):
+# Initializes the 2 Q matrices v
 
 
 
-    new_estimate =
+def seq_q_step(Q,current_action_index, old_state_index, current_state_index , t, action_vector , 
+            gamma = gamma_discount_factor, alpha = alpha):
 
-    previous_estimate = 
+    current_price = action_vector[current_action_index]
 
-    Q_new = 
+    old_opponent_price = action_vector[old_state_index]
 
-    action = action_choice(Q, current_state, action_vector, t)
+    old_profit = profit(current_price,old_opponent_price)
+
+    current_opponent_price = action_vector[current_state_index]
+
+    new_profit = profit(current_price,current_opponent_price)
+
+    previous_estimate = Q[current_action_index,old_state_index]
+
+    new_estimate = old_profit + gamma*new_profit+ (gamma**2) *np.max(Q[:,current_state_index])
+
+    Q[current_action_index,old_state_index] = (1-alpha)* previous_estimate + alpha*new_estimate
+
+    new_action_index = action_choice(Q,current_state_index,t)
+
+
+    return Q, current_state_index, current_action_index, new_action_index
+
+
+# define two Q matrices, one for each player
+def initialize_Q(k):
+    Q1 = np.zeros((k,k))
+    Q2 = np.zeros((k,k))
+    return Q1,Q2
+
+
+
+def simulation_q_learning(T,k):
+    #initialise the q matrices (AXA)
+    Q1,Q2 = initialize_Q(k)
+
+    # intiltoze the price vector / action vector (1+k)x1
+    action_vector = price_array(k)
+
+
+    #number of actions :
+    number_of_actions = len(action_vector)
+
+    #initialize the starting prices
+    
+
+    p1_current_index = np.random.randint(number_of_actions)
+    p1_old_index = np.random.randint(number_of_actions)
+
+    p2_old_index = np.random.randint(number_of_actions)
+    p2_current_index = np.random.randint(number_of_actions)
+
+    # save the average running profit for each player. The average is taken over 100 time steps
+    running_profit_1 = []
+    running_profit_2 = []
+    for t in range(T):
+        if (t%2) ==0:
+            Q1,p2_current_index,p1_old_index,p1_current_index =seq_q_step(Q1,
+            p1_current_index,
+            p2_old_index,
+            p2_current_index,
+            t,
+            action_vector)
+            if  t>9950 and t<10000:
+                running_profit_1.append(profit(action_vector[p1_current_index],action_vector[p2_current_index]))
+        else: 
+            Q2,p1_current_index,p2_old_index,p2_current_index =seq_q_step(Q2,
+            p2_current_index,
+            p1_old_index,
+            p1_current_index,
+            t,
+            action_vector)
+        
+
+            #if we want to store action do it hea
+
+    return Q1,Q2, running_profit_1
+
+#Run a test simulation
+Q1,Q2,r1 = simulation_q_learning(T,7)
+print(Q1)
+print(Q2)
+print(r1)
 
 

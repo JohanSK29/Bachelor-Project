@@ -1,4 +1,4 @@
-
+import time
 import numpy as np
 
 #Parameters:
@@ -23,13 +23,13 @@ def current_epsilon_value(t,theta=theta):
 #NOTES: A Q table is Action X States matrix, where a action is a price, (Klein 2021), 
 #which differs from Julius but not the other BA project (Morten and Johanne)
 #Notes current_state corresponds to the index of the current state
-# Under the markow assumption a players state is just the other players price and therefore actions
-# Since the Players are only two and have the same number of actions, this will be a Q = AxA  matrix or 
-# Q = PriceXPrice matrix
-# This note is important for explaining in the BA.
-# Should our Q-learning go back in time more than just the previous state, maybe 2 or 3, 
-# it would break markow assumption but maybe there is somehting here
-# Also we could explore if the player does not have the same price room as the other and see what then will happen
+#Under the markow assumption a players state is just the other players price and therefore actions
+#Since the Players are only two and have the same number of actions, this will be a Q = AxA  matrix or 
+#Q = PriceXPrice matrix
+#This note is important for explaining in the BA.
+#Should our Q-learning go back in time more than just the previous state, maybe 2 or 3, 
+#it would break markow assumption but maybe there is somehting here
+#Also we could explore if the player does not have the same price room as the other and see what then will happen
 
 #Exploration selection
 
@@ -96,7 +96,6 @@ def initialize_Q(k):
     return Q1,Q2
 
 
-
 def simulation_q_learning(T,k):
     #initialise the q matrices (AXA)
     Q1,Q2 = initialize_Q(k)
@@ -136,6 +135,10 @@ def simulation_q_learning(T,k):
             profit_1 = profit(action_vector[p1_current_index], action_vector[p2_current_index])
             cumulative_profit_1 += profit_1
             running_average_profit_1.append(cumulative_profit_1 / (t + 1))
+
+            profit_2 = profit(action_vector[p2_current_index], action_vector[p1_current_index])
+            cumulative_profit_2 += profit_2
+            running_average_profit_2.append(cumulative_profit_2 / (t + 1))
         else: 
             Q2,p1_current_index,p2_old_index,p2_current_index =seq_q_step(Q2,
             p2_current_index,
@@ -143,10 +146,14 @@ def simulation_q_learning(T,k):
             p1_current_index,
             t,
             action_vector)
+
             profit_2 = profit(action_vector[p2_current_index], action_vector[p1_current_index])
             cumulative_profit_2 += profit_2
             running_average_profit_2.append(cumulative_profit_2 / (t + 1))
-
+            
+            profit_1 = profit(action_vector[p1_current_index], action_vector[p2_current_index])
+            cumulative_profit_1 += profit_1
+            running_average_profit_1.append(cumulative_profit_1 / (t + 1))
             #if we want to store action do it hea
 
     return Q1,Q2, running_average_profit_1, running_average_profit_2
@@ -156,28 +163,6 @@ def simulation_q_learning(T,k):
 # print(Q1)
 # print(Q2)
 # print(r1)
-
-# Test the simulation with running averages
-def test_simulation_q_learning_with_running_average():
-    T = 100  # Use a smaller T for testing
-    k = 10
-    Q1, Q2, running_average_profit_1, running_average_profit_2 = simulation_q_learning(T, k)
-
-    # Check that the running averages have the correct length
-    assert len(running_average_profit_1) == T/2
-    assert len(running_average_profit_2) == T/2
-
-    # Check that the running averages are non-negative
-    assert all(p >= 0 for p in running_average_profit_1)
-    assert all(p >= 0 for p in running_average_profit_2)
-
-    # Print the final running averages for visual inspection
-    print("Final running average profit for Player 1:", running_average_profit_1[-1])
-    print("Final running average profit for Player 2:", running_average_profit_2[-1])
-
-
-# Run the test
-test_simulation_q_learning_with_running_average()
 
 
 import matplotlib.pyplot as plt
@@ -200,15 +185,31 @@ def plot_running_averages(running_average_profit_1, running_average_profit_2):
     plt.grid(True)
     plt.show()
 
-# Example usage after running the simulation
-def test_simulation_q_learning_with_graph():
-    T = 100  # Use a smaller T for testing
-    k = 10
+# Test the simulation with running averages
+def test_simulation_q_learning_with_running_average():
+    T = 500_000  # Use a smaller T for testing
+    k = 50
     Q1, Q2, running_average_profit_1, running_average_profit_2 = simulation_q_learning(T, k)
 
-    # Plot the running averages
-    plot_running_averages(running_average_profit_1, running_average_profit_2)
+    # Check that the running averages have the correct length
+    assert len(running_average_profit_1) == T
+    assert len(running_average_profit_2) == T
 
-# Run the test with graphing
-test_simulation_q_learning_with_graph()
+    # Check that the running averages are non-negative
+    assert all(p >= 0 for p in running_average_profit_1)
+    assert all(p >= 0 for p in running_average_profit_2)
 
+    # Print the final running averages for visual inspection
+    print("Final running average profit for Player 1:", running_average_profit_1[-1])
+    print("Final running average profit for Player 2:", running_average_profit_2[-1])
+    #plot_running_averages(running_average_profit_1, running_average_profit_2)
+
+
+start_time = time.time()
+
+# Run the test
+test_simulation_q_learning_with_running_average()
+end_time = time.time()
+
+elapsed = end_time - start_time
+print(f"Execution took {elapsed:.3f} seconds.")

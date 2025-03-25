@@ -166,7 +166,7 @@ def simulation_q_learning(T,k):
 
     return Q1,Q2, profit_1, profit_2
 
-
+'''
 # Test the simulation with running averages
 @jit(nopython=True)
 def test_simulation_q_learning_with_running_average():
@@ -192,9 +192,11 @@ def test_simulation_q_learning_with_running_average():
     #print("Final running average profit for Player 1:", moving_avg_player1[0:20])
     #print("Final running average profit for Player 2:", profit_2[T-20:T])
     return moving_avg_player1, moving_avg_player2
+'''
+    
 
 @jit(nopython=True)
-def simulate_multiple_runs(num_runs=1000, T=500_000, k=6, window_size=1000):
+def simulate_multiple_runs(num_runs, T, k, window_size):
     # Preallocate accumulators for the moving averages
     cumulative_avg_player1 = np.zeros(T - window_size - 1)
     cumulative_avg_player2 = np.zeros(T - window_size - 1)
@@ -230,19 +232,19 @@ def simulate_multiple_runs(num_runs=1000, T=500_000, k=6, window_size=1000):
 # Simulate 1000 runs
 num_runs = 1000
 T = 500_000
-k = 100
+k = 12
 window_size = 1000
+
+start_time = time.time()
 
 avg_moving_avg_player1, avg_moving_avg_player2 = simulate_multiple_runs(num_runs, T, k, window_size)
 
-
+end_time = time.time()
 
 # Plot the moving average of the profit for player 1
 import matplotlib.pyplot as plt
 
 
-
-start_time = time.time()
 
 # Plot the results
 fig, axes = plt.subplots(2, 1, figsize=(10, 12))
@@ -269,6 +271,8 @@ axes[1].set_ylim(bottom=0)
 axes[1].legend()
 axes[1].grid(True)
 
+#Give the number of k in the title
+fig.suptitle(f"Moving Average Profits for Player 1 and Player 2 with k = {k}")
 plt.tight_layout()
 plt.show()
 
@@ -308,8 +312,6 @@ plt.grid(True)
 plt.show()
 
 '''
-
-end_time = time.time()
 
 elapsed = end_time - start_time
 print(f"Execution took {elapsed:.3f} seconds.")

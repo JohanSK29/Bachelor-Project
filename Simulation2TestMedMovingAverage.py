@@ -186,10 +186,56 @@ def test_simulation_q_learning_with_running_average():
         moving_avg_player1.append(np.sum(profit_1[i:i+window_size]) / window_size)
         moving_avg_player2.append(np.sum(profit_2[i:i+window_size]) / window_size)
 
+
+
     # Print the final running averages for visual inspection
-    print("Final running average profit for Player 1:", moving_avg_player1[0:20])
+    #print("Final running average profit for Player 1:", moving_avg_player1[0:20])
     #print("Final running average profit for Player 2:", profit_2[T-20:T])
     return moving_avg_player1, moving_avg_player2
+
+@jit(nopython=True)
+def simulate_multiple_runs(num_runs=1000, T=500_000, k=6, window_size=1000):
+    # Preallocate accumulators for the moving averages
+    cumulative_avg_player1 = np.zeros(T - window_size - 1)
+    cumulative_avg_player2 = np.zeros(T - window_size - 1)
+
+    for run in range(num_runs):
+        print(f"Running simulation {run + 1}/{num_runs}...")
+        # Run a single simulation
+        Q1, Q2, profit_1, profit_2 = simulation_q_learning(T, k)
+
+        # Convert profit lists to NumPy arrays
+        profit_1 = np.array(profit_1)
+        profit_2 = np.array(profit_2)
+
+        # Preallocate arrays for moving averages for this run
+        moving_avg_player1 = np.zeros(T - window_size - 1)
+        moving_avg_player2 = np.zeros(T - window_size - 1)
+
+        # Calculate moving averages for this run
+        for i in range(1, T - window_size):
+            moving_avg_player1[i - 1] = np.sum(profit_1[i:i + window_size]) / window_size
+            moving_avg_player2[i - 1] = np.sum(profit_2[i:i + window_size]) / window_size
+
+        # Accumulate the moving averages
+        cumulative_avg_player1 += moving_avg_player1
+        cumulative_avg_player2 += moving_avg_player2
+
+    # Compute the average moving averages across all runs
+    avg_moving_avg_player1 = cumulative_avg_player1 / num_runs
+    avg_moving_avg_player2 = cumulative_avg_player2 / num_runs
+
+    return avg_moving_avg_player1, avg_moving_avg_player2
+
+# Simulate 1000 runs
+num_runs = 1000
+T = 500_000
+k = 100
+window_size = 1000
+
+avg_moving_avg_player1, avg_moving_avg_player2 = simulate_multiple_runs(num_runs, T, k, window_size)
+
+
 
 # Plot the moving average of the profit for player 1
 import matplotlib.pyplot as plt
@@ -198,6 +244,35 @@ import matplotlib.pyplot as plt
 
 start_time = time.time()
 
+# Plot the results
+fig, axes = plt.subplots(2, 1, figsize=(10, 12))
+
+# Plot Player 1's average moving average
+axes[0].plot(avg_moving_avg_player1, label="Player 1 Average Moving Average Profit", color="blue")
+axes[0].set_xlabel("Time Steps")
+axes[0].set_ylabel("Profit (Moving Average)")
+axes[0].set_title("Player 1: Average Moving Average Profit Across 1000 Runs")
+axes[0].axhline(y=0.125, color='r', linestyle='--', label="Collusive benchmark")
+axes[0].axhline(y=0.0611, color='g', linestyle='--', label="Market benchmark")
+axes[0].set_ylim(bottom=0)
+axes[0].legend()
+axes[0].grid(True)
+
+# Plot Player 2's average moving average
+axes[1].plot(avg_moving_avg_player2, label="Player 2 Average Moving Average Profit", color="red")
+axes[1].set_xlabel("Time Steps")
+axes[1].set_ylabel("Profit (Moving Average)")
+axes[1].set_title("Player 2: Average Moving Average Profit Across 1000 Runs")
+axes[1].axhline(y=0.125, color='r', linestyle='--', label="Collusive benchmark")
+axes[1].axhline(y=0.0611, color='g', linestyle='--', label="Market benchmark")
+axes[1].set_ylim(bottom=0)
+axes[1].legend()
+axes[1].grid(True)
+
+plt.tight_layout()
+plt.show()
+
+'''
 # Run the test
 moving_avg_player1, moving_avg_player2 = test_simulation_q_learning_with_running_average()
 # Plot the moving average of the profit for Player 1
@@ -231,6 +306,8 @@ plt.ylim(bottom=0)
 plt.legend()
 plt.grid(True)
 plt.show()
+
+'''
 
 end_time = time.time()
 

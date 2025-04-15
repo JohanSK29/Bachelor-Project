@@ -72,7 +72,7 @@ def profit(pi,pj):
 
 
 @jit(nopython=True)
-def seq_q_step(Q,current_action_index, old_state_index, current_state_index , t, action_vector , 
+def seq_q_step(Q, current_action_index, old_state_index, current_state_index, t, action_vector , 
             gamma = gamma_discount_factor, alpha = alpha):
 
     current_price = action_vector[current_action_index]
@@ -129,12 +129,9 @@ def simulation_q_learning(T,k):
     profit_1 = []
     profit_2 = []
 
-    # save the average running profit for each player. The average is taken over 100 time steps
-    # running_average_profit_1 = []
-    # running_average_profit_2 = []
-
-    # cumulative_profit_1 = 0
-    # cumulative_profit_2 = 0 
+    # save the prices:
+    prices_1 = []
+    prices_2 = []
 
     for t in range(T):
         if (t%2) ==0:
@@ -144,15 +141,13 @@ def simulation_q_learning(T,k):
             p2_current_index,
             t,
             action_vector)
+            
             #average profit over 100 time steps, this is not the same as the average profit over the whole simulation
             profit_1.append( profit(action_vector[p1_current_index], action_vector[p2_current_index]))
-            # cumulative_profit_1 += profit_1
-            # running_average_profit_1.append(cumulative_profit_1 / (t + 1))
-
             profit_2.append( profit(action_vector[p2_current_index], action_vector[p1_current_index]))
-
-            # cumulative_profit_2 += profit_2
-            # running_average_profit_2.append(cumulative_profit_2 / (t + 1))
+            
+            prices_1.append(action_vector[p1_current_index])
+            prices_2.append(action_vector[p2_current_index])
         else: 
             Q2,p1_current_index,p2_old_index,p2_current_index =seq_q_step(Q2,
             p2_current_index,
@@ -162,17 +157,12 @@ def simulation_q_learning(T,k):
             action_vector)
 
             profit_2.append( profit(action_vector[p2_current_index], action_vector[p1_current_index]))
-
-            # cumulative_profit_2 += profit_2
-            # running_average_profit_2.append(cumulative_profit_2 / (t + 1))
-            
             profit_1.append( profit(action_vector[p1_current_index], action_vector[p2_current_index]))
+            
+            prices_1.append(action_vector[p1_current_index])
+            prices_2.append(action_vector[p2_current_index])
 
-            # cumulative_profit_1 += profit_1
-            # running_average_profit_1.append(cumulative_profit_1 / (t + 1))
-            #if we want to store action do it hea
-
-    return Q1,Q2, profit_1, profit_2
+    return Q1,Q2, profit_1, profit_2, prices_1, prices_2
 
 
 
@@ -275,7 +265,49 @@ def simulate_klein_edgeworth_cycle_compt_benchmark(k,cycles):
     return np.mean(profits_1), np.mean(profits_2),np.mean(profits_1+profits_2), history
 
 
-avg1, avg2, avg_common, hist = simulate_klein_edgeworth_cycle_compt_benchmark(k=25,cycles = 1)
-print(f"P1 avg profit: {avg1:.4f}, P2 avg: {avg2:.4f}, common: {avg_common:.4f}")
-print(f"Cycle length: {len(hist)}")
-print(hist)
+
+def detect_price_cycle(prices, max_cycle_len=50, min_repeats=2, tolerance=1e-5):
+    """
+    Detects repeated price cycles in a 1D list or array of prices.
+    
+    Args:
+        prices: List or array of recent prices (e.g. last 200)
+        max_cycle_len: Maximum cycle length to search for
+        min_repeats: Minimum number of repetitions to count as a cycle
+        tolerance: Allowed absolute difference for matching due to float rounding
+
+    Returns:
+        (cycle_length, pattern) if found, otherwise (None, None)
+    """
+    prices = np.array(prices)
+    n = len(prices)
+
+    for cycle_len in range(2, max_cycle_len + 1):
+        num_possible_repeats = n // cycle_len
+        if num_possible_repeats < min_repeats:
+            continue
+
+        pattern = prices[-cycle_len:]  # Take last cycle_len points as candidate pattern
+
+        match = True
+        for i in range(2, min_repeats + 1):
+            start = -i * cycle_len
+            end = start + cycle_len
+            if end < -n:
+                match = False
+                break
+            window = prices[start:end]
+            if not np.allclose(window, pattern, atol=tolerance):
+                match = False
+                break
+
+        if match:
+            return cycle_len, pattern
+
+    return None, None
+
+
+#avg1, avg2, avg_common, hist = simulate_klein_edgeworth_cycle_compt_benchmark(k=11,cycles = 1)
+#print(f"P1 avg profit: {avg1:.4f}, P2 avg: {avg2:.4f}, common: {avg_common:.4f}")
+#print(f"Cycle length: {len(hist)}")
+#print(hist)

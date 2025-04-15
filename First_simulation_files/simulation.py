@@ -1,5 +1,9 @@
 import time
 import numpy as np
+from numba import jit, config
+
+
+config.DISABLE_JIT = False
 
 #Parameters:
 #time steps, 500_000
@@ -12,10 +16,12 @@ alpha = 0.3
 theta = 0.0000275
 
 #define the price array which will also be the actions vector 
+@jit(nopython=True)
 def price_array(k):
     return np.linspace(0,1,k)
 
 #Episilon exploration parameter function. 
+@jit(nopython=True)
 def current_epsilon_value(t,theta=theta):
     epsilon = (1-theta)**t
     return epsilon
@@ -34,6 +40,7 @@ def current_epsilon_value(t,theta=theta):
 #Exploration selection
 
 #def action_choice(Q, current_state_index, action_vector,t):
+@jit(nopython=True)
 def action_choice(Q, current_state_index,t):
     "Epsilon greedy selection"
     current_epsilon= current_epsilon_value(t)
@@ -47,7 +54,7 @@ def action_choice(Q, current_state_index,t):
         # max_index = np.argmax(Q[:,current_state_index])
         # return action_vector(max_index)
 
-
+@jit(nopython=True)
 def demand(pi,pj):
     if pi < pj:
         d = 1-pi
@@ -57,13 +64,14 @@ def demand(pi,pj):
         d = 0.5 * (1-pi)
     return d
 
+@jit(nopython=True)
 def profit(pi,pj):
     return pi * demand(pi,pj)
 
 # Initializes the 2 Q matrices v
 
 
-
+@jit(nopython=True)
 def seq_q_step(Q,current_action_index, old_state_index, current_state_index , t, action_vector , 
             gamma = gamma_discount_factor, alpha = alpha):
 
@@ -90,12 +98,13 @@ def seq_q_step(Q,current_action_index, old_state_index, current_state_index , t,
 
 
 # define two Q matrices, one for each player
+@jit(nopython=True)
 def initialize_Q(k):
     Q1 = np.zeros((k,k))
     Q2 = np.zeros((k,k))
     return Q1,Q2
 
-
+@jit(nopython=True)
 def simulation_q_learning(T,k):
     #initialise the q matrices (AXA)
     Q1,Q2 = initialize_Q(k)
@@ -117,8 +126,8 @@ def simulation_q_learning(T,k):
     p2_current_index = np.random.randint(number_of_actions)
 
     # save the average running profit for each player. The average is taken over 100 time steps
-    running_average_profit_1 = []
-    running_average_profit_2 = []
+    #running_average_profit_1 = []
+    #running_average_profit_2 = []
 
     cumulative_profit_1 = 0
     cumulative_profit_2 = 0 
@@ -132,13 +141,15 @@ def simulation_q_learning(T,k):
             t,
             action_vector)
             #average profit over 100 time steps, this is not the same as the average profit over the whole simulation
-            profit_1 = profit(action_vector[p1_current_index], action_vector[p2_current_index])
-            cumulative_profit_1 += profit_1
-            running_average_profit_1.append(cumulative_profit_1 / (t + 1))
+            
+            #Profits for the last 1000 periods
+            if t > T-1000:
+                profit_1 = profit(action_vector[p1_current_index], action_vector[p2_current_index])
+                cumulative_profit_1 += profit_1
 
-            profit_2 = profit(action_vector[p2_current_index], action_vector[p1_current_index])
-            cumulative_profit_2 += profit_2
-            running_average_profit_2.append(cumulative_profit_2 / (t + 1))
+                profit_2 = profit(action_vector[p2_current_index], action_vector[p1_current_index])
+                cumulative_profit_2 += profit_2
+
         else: 
             Q2,p1_current_index,p2_old_index,p2_current_index =seq_q_step(Q2,
             p2_current_index,
@@ -147,14 +158,17 @@ def simulation_q_learning(T,k):
             t,
             action_vector)
 
-            profit_2 = profit(action_vector[p2_current_index], action_vector[p1_current_index])
-            cumulative_profit_2 += profit_2
-            running_average_profit_2.append(cumulative_profit_2 / (t + 1))
+            #Profit for the last 1000 periods
+            if t > T-1000:
+                profit_2 = profit(action_vector[p2_current_index], action_vector[p1_current_index])
+                cumulative_profit_2 += profit_2
             
-            profit_1 = profit(action_vector[p1_current_index], action_vector[p2_current_index])
-            cumulative_profit_1 += profit_1
-            running_average_profit_1.append(cumulative_profit_1 / (t + 1))
+                profit_1 = profit(action_vector[p1_current_index], action_vector[p2_current_index])
+                cumulative_profit_1 += profit_1
             #if we want to store action do it hea
+            
+    running_average_profit_1 = cumulative_profit_1/1000
+    running_average_profit_2 = cumulative_profit_2/1000
 
     return Q1,Q2, running_average_profit_1, running_average_profit_2
 
@@ -188,21 +202,22 @@ def plot_running_averages(running_average_profit_1, running_average_profit_2):
 # Test the simulation with running averages
 def test_simulation_q_learning_with_running_average():
     T = 500_000  # Use a smaller T for testing
-    k = 50
+    k = 100
     Q1, Q2, running_average_profit_1, running_average_profit_2 = simulation_q_learning(T, k)
 
     # Check that the running averages have the correct length
-    assert len(running_average_profit_1) == T
-    assert len(running_average_profit_2) == T
+    #assert len(running_average_profit_1) == T
+    #assert len(running_average_profit_2) == T
 
     # Check that the running averages are non-negative
-    assert all(p >= 0 for p in running_average_profit_1)
-    assert all(p >= 0 for p in running_average_profit_2)
+    #assert all(p >= 0 for p in running_average_profit_1)
+    #assert all(p >= 0 for p in running_average_profit_2)
 
     # Print the final running averages for visual inspection
-    print("Final running average profit for Player 1:", running_average_profit_1[-1])
-    print("Final running average profit for Player 2:", running_average_profit_2[-1])
-    #plot_running_averages(running_average_profit_1, running_average_profit_2)
+    print("Final running average profit for Player 1:", running_average_profit_1)
+    print("Final running average profit for Player 2:", running_average_profit_2)
+
+    plot_running_averages(running_average_profit_1, running_average_profit_2)
 
 
 start_time = time.time()

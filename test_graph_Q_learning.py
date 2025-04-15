@@ -11,7 +11,7 @@ def simulate_q_learning_common_profit(num_runs, T, window_size, k):
     for run in range(num_runs):
         print(f"Running Q-learning simulation {run + 1}/{num_runs}...")
         # Simulate Q-learning players' profits
-        Q1, Q2, profit_1, profit_2 = simulation_q_learning(T, k)
+        Q1, Q2, profit_1, profit_2, price_1, price_2 = simulation_q_learning(T, k)
 
         # Preallocate array for common profit
         common_profit = np.zeros(T)

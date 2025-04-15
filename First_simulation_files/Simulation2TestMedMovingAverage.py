@@ -2,7 +2,6 @@ import time
 import numpy as np
 from numba import jit, config
 
-
 config.DISABLE_JIT = False
 
 #Parameters:
@@ -232,7 +231,7 @@ def simulate_multiple_runs(num_runs, T, k, window_size):
 # Simulate 1000 runs
 num_runs = 1000
 T = 500_000
-k = 12
+k = 5000
 window_size = 1000
 
 start_time = time.time()

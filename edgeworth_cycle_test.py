@@ -16,44 +16,132 @@ np.set_printoptions(precision=3, suppress=True, linewidth=100)
 #print("Last 20 prices for player 1:\n", prices_1[-20:])
 
 
+def evaluate_end_converge_cycle (num_runs, T, k):
+
+    N = 1000
+
+    # Define a list to store cycle lengths and patterns
+    cycle_len_and_pattern = []
+
+    #run the simulation for num_runs
+    for run in range(num_runs):
+        print(f"Running Q-learning simulation {run + 1}/{num_runs}...")
+        # Simulate Q-learning players' profits
+        Q1, Q2, profit_1, profit_2, price_1, price_2 = simulation_q_learning(T, k)
+
+        # save the last N prices
+        prices_1 = price_1[-N:]
+        prices_2 = price_2[-N:]
+
+        #Detect cycles
+        cycle_len, pattern_combined = detect_price_cycle(prices_1, prices_2)
+
+        # Convert pattern_combined to native Python floats
+        if pattern_combined is not None:
+            pattern_combined = tuple((float(p1), float(p2)) for p1, p2 in pattern_combined)
+
+        # Append the cycle length and pattern as a tuple to the list
+        cycle_len_and_pattern.append((cycle_len, pattern_combined))
+
+    # Count the occurrences of each cycle length and pattern
+    cycle_length_counts = {}
+    for cycle_len, pattern in cycle_len_and_pattern:
+        if cycle_len not in cycle_length_counts:
+            cycle_length_counts[cycle_len] = 0
+        cycle_length_counts[cycle_len] += 1
+
+
+    # Print the cycle lengths and their counts
+    print("Cycle lengths and their counts:")
+    for cycle_len, count in cycle_length_counts.items():
+        print(f"Cycle length: {cycle_len}, Count: {count}")
+
+    # print the number of time a pattern occurs:
+    pattern_counts = {}
+    focal_pricing_count = 0
+    non_focal_pricing_count = 0
+    focal_pricing_patterns_counts = {}  # Dictionary to store focal pricing patterns and their counts
+
+    for cycle_len, pattern in cycle_len_and_pattern:
+        if pattern is not None:
+            if pattern not in pattern_counts:
+                pattern_counts[pattern] = 0
+            pattern_counts[pattern] += 1
+
+            # Check if the pattern represents focal pricing
+            is_focal = all(p1 == p2 for p1, p2 in pattern)
+            if is_focal:
+                focal_pricing_count += 1
+                if pattern not in focal_pricing_patterns_counts:
+                    focal_pricing_patterns_counts[pattern] = 0
+                focal_pricing_patterns_counts[pattern] += 1
+            else:
+                non_focal_pricing_count += 1
+
+    # Print the patterns and their counts
+    print("Patterns and their counts:")
+    for pattern, count in pattern_counts.items():
+        print(f"Pattern: {pattern}, Count: {count}")
+
+    # Print focal pricing evaluation
+    print("\nFocal Pricing Evaluation:")
+    print(f"Focal Pricing Count: {focal_pricing_count}")
+    print(f"Non-Focal Pricing Count: {non_focal_pricing_count}")
+
+    # Print the focal pricing patterns and their counts
+    print("\nFocal Pricing Patterns and their counts:")
+    for pattern, count in focal_pricing_patterns_counts.items():
+        print(f"Pattern: {pattern}, Count: {count}")
+
+    return None
+
 # Set simulation parameters
 T = 500_000
 k = 7
+num_runs = 100
 
 # Run simulation
 Q1, Q2, profit_1, profit_2, prices_1, prices_2 = simulation_q_learning(T, k)
 
 # Optionally trim to the last N steps for clarity
 N = 1000
+# Trim the prices to the first N steps
 prices_1_trim = prices_1[-N:]
 prices_2_trim = prices_2[-N:]
 
 avg1, avg2, avg_common, hist = simulate_klein_edgeworth_cycle_compt_benchmark(k,cycles = 1)
 
 
-cycle_len_p1, pattern_p1 = detect_price_cycle(prices_1_trim)
-cycle_len_p2, pattern_p2 = detect_price_cycle(prices_2_trim)
+cycle_len, pattern_combined = detect_price_cycle(prices_1_trim, prices_2_trim)
 
 
-print("Last 20 prices for player 1:\n", prices_1_trim[-20:])
-print("Last 20 prices for player 2:\n", prices_2_trim[-20:])
+lorteliste = evaluate_end_converge_cycle(num_runs, T, k)
 
-print("P1 cycle length:", cycle_len_p1)
-print("P1 cycle pattern:", pattern_p1)
+print(lorteliste)
 
-print("P2 cycle length:", cycle_len_p2)
-print("P2 cycle pattern:", pattern_p2)
+#convert hist from np.float64 to float
+hist = np.array(hist).astype(float)
+#print("Last 20 prices edgeworth:\n", hist[-20:])
+
+
+prices_1_trim = np.array(prices_1_trim).astype(float)
+prices_2_trim = np.array(prices_2_trim).astype(float)
+#print("Last 20 prices for player 1:\n", prices_1_trim[-10:])
+#print("Last 20 prices for player 2:\n", prices_2_trim[-10:])
+
+#print edgeworth cycle length
+#print("Edgeworth cycle length:", len(hist))
+
+#print("Sim cycle length:", cycle_len)
+#pattern_combined = np.array(pattern_combined).astype(float)
+#print("P1 cycle pattern:\n", pattern_combined)
+
 
 
 
 #print(prices_1_trim)
 
 
-
-
-#print the last 50 entries of hist
-#convert hist from np.float64 to float
-#hist = hist = np.array(hist).astype(float)
 #print("Edgeworth cycle prices hist:\n", hist)
 
 

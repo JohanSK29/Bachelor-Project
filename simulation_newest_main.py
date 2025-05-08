@@ -265,7 +265,7 @@ def simulate_klein_edgeworth_cycle_compt_benchmark(k,cycles):
     return np.mean(profits_1), np.mean(profits_2),np.mean(profits_1+profits_2), history
 
 
-
+'''
 def detect_price_cycle(prices, max_cycle_len=50, min_repeats=2, tolerance=1e-5):
     """
     Detects repeated price cycles in a 1D list or array of prices.
@@ -305,9 +305,64 @@ def detect_price_cycle(prices, max_cycle_len=50, min_repeats=2, tolerance=1e-5):
             return cycle_len, pattern
 
     return None, None
+'''
 
+def detect_price_cycle(prices_1, prices_2, max_cycle_len=50, min_repeats=2, tolerance=1e-5):
+    """
+    Detects repeated price cycles in two 1D lists or arrays of prices.
 
-#avg1, avg2, avg_common, hist = simulate_klein_edgeworth_cycle_compt_benchmark(k=11,cycles = 1)
+    Args:
+        prices_1: List or array of recent prices for player 1 (e.g., last 200)
+        prices_2: List or array of recent prices for player 2 (e.g., last 200)
+        max_cycle_len: Maximum cycle length to search for
+        min_repeats: Minimum number of repetitions to count as a cycle
+        tolerance: Allowed absolute difference for matching due to float rounding
+
+    Returns:
+        (cycle_length, combined_pattern) if found, otherwise (None, None)
+        combined_pattern is a tuple of (player_1_price, player_2_price) for each step in the cycle.
+    """
+    prices_1 = np.array(prices_1)
+    prices_2 = np.array(prices_2)
+    n = len(prices_1)
+
+    # Ensure both price lists have the same length
+    if len(prices_1) != len(prices_2):
+        raise ValueError("prices_1 and prices_2 must have the same length")
+
+    for cycle_len in range(2, max_cycle_len + 1):
+        num_possible_repeats = n // cycle_len
+        if num_possible_repeats < min_repeats:
+            continue
+
+        # Take the last cycle_len points as candidate patterns for both players
+        pattern_1 = prices_1[-cycle_len:]
+        pattern_2 = prices_2[-cycle_len:]
+
+        match = True
+        for i in range(2, min_repeats + 1):
+            start = -i * cycle_len
+            end = start + cycle_len
+            if end < -n:
+                match = False
+                break
+
+            # Check if the windows match the patterns for both players
+            window_1 = prices_1[start:end]
+            window_2 = prices_2[start:end]
+            if not (np.allclose(window_1, pattern_1, atol=tolerance) and
+                    np.allclose(window_2, pattern_2, atol=tolerance)):
+                match = False
+                break
+
+        if match:
+            # Combine the patterns into a single tuple for each step
+            combined_pattern = tuple((p1, p2) for p1, p2 in zip(pattern_1, pattern_2))
+            return cycle_len, combined_pattern
+
+    return None, None
+
+#avg1, avg2, avg_common, hist = simulate_klein_edgeworth_cycle_compt_benchmark(k=3001,cycles = 1)
 #print(f"P1 avg profit: {avg1:.4f}, P2 avg: {avg2:.4f}, common: {avg_common:.4f}")
 #print(f"Cycle length: {len(hist)}")
 #print(hist)

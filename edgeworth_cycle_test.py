@@ -97,8 +97,8 @@ def evaluate_end_converge_cycle (num_runs, T, k):
 
 # Set simulation parameters
 T = 500_000
-k = 7
-num_runs = 100
+k = 101
+num_runs = 1000
 
 # Run simulation
 Q1, Q2, profit_1, profit_2, prices_1, prices_2 = simulation_q_learning(T, k)

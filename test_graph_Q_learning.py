@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 from numba import jit
 from simulation_newest_main import simulation_q_learning, simulate_klein_edgeworth_cycle_compt_benchmark
 
+np.random.seed(123)
+
 @jit(nopython=True)
 def simulate_q_learning_common_profit(num_runs, T, window_size, k):
     # Preallocate accumulators for the moving averages
@@ -37,7 +39,7 @@ def simulate_q_learning_common_profit(num_runs, T, window_size, k):
 num_runs = 1000
 T = 500_000
 window_size = 1000
-k = 25
+k = 101
 
 # Calculate k-1 for the title
 k_minus_1 = k - 1
@@ -49,7 +51,7 @@ _, _, competitive_benchmark, _ = simulate_klein_edgeworth_cycle_compt_benchmark(
 avg_moving_avg_common_profit = simulate_q_learning_common_profit(num_runs, T, window_size, k)
 
 # Calculate the average common profit
-average_common_profit = np.mean(avg_moving_avg_common_profit)
+average_common_profit = np.mean(avg_moving_avg_common_profit[-1000:])
 
 # Plot the average moving average of the common profit
 plt.figure(figsize=(10, 6))
@@ -62,7 +64,7 @@ plt.axhline(y=competitive_benchmark, color='g', linestyle='--', label=f"Competit
 plt.ylim(bottom=0)
 
 # Add a text box for the average common profit
-textstr = f"Average Common Profit: {average_common_profit:.4f}"
+textstr = f"Average Common Profit in the last 1000 periods: {average_common_profit:.4f}"
 plt.gca().text(0.02, 0.95, textstr, transform=plt.gca().transAxes, fontsize=10,
                verticalalignment='top', bbox=dict(boxstyle="round", facecolor="white", alpha=0.5))
 

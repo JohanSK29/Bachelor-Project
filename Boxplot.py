@@ -29,9 +29,17 @@ def plot_cycle_length_boxplots(cycle_lengths_by_k):
     k_minus_1_labels = [k - 1 for k in k_values]
 
     plt.figure(figsize=(10, 6))
-    # Boxplot
-    bp = plt.boxplot(data, labels=k_minus_1_labels, vert=True, showmeans=True,
-                     meanprops=dict(marker= 'x', color='red', markersize=8))
+    # # Boxplot
+
+    meanprops = dict(marker='x', markerfacecolor='green', markeredgecolor='green', markersize=8)
+    bp = plt.boxplot(data, labels=k_minus_1_labels, vert=True, showmeans=True, meanprops=meanprops)
+
+    # bp = plt.boxplot(data, labels=k_minus_1_labels, vert=True, showmeans=True,
+    #                  meanprops=dict(marker= 'x', color='red', markersize=8))
+
+    # Add a legend to explicitly show that 'x' represents the mean
+    plt.scatter([], [], color='green', marker='x', label='Mean of the cycle length')  # Dummy scatter for legend
+    plt.legend()
 
     plt.xlabel("k (Number of Price Points)")
     plt.ylabel("Cycle Length (Last 1000 Periods)")

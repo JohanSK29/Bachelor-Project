@@ -79,10 +79,10 @@ def evaluate_end_converge_cycle (num_runs, T, k):
                 non_focal_pricing_count += 1
 
     #Print the patterns and their counts
-    print("Patterns and their counts:")
-    for pattern, count in pattern_counts.items():
-        formatted_pattern = [(f"{p1:.3f}", f"{p2:.3f}") for p1, p2 in pattern]  # Format each value to 3 decimals
-        print(f"Pattern: {formatted_pattern}, Count: {count}")
+    # print("Patterns and their counts:")
+    # for pattern, count in pattern_counts.items():
+    #     formatted_pattern = [(f"{p1:.3f}", f"{p2:.3f}") for p1, p2 in pattern]  # Format each value to 3 decimals
+    #     print(f"Pattern: {formatted_pattern}, Count: {count}")
         
 
     # Print focal pricing evaluation

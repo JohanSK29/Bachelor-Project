@@ -41,7 +41,7 @@ def simulate_random_common_profit(num_runs, T, window_size, k):
 num_runs = 1000
 T = 500_000
 window_size = 1000
-k = 101
+k = 49
 
 # Calculate k-1 for the title
 k_minus_1 = k - 1

@@ -49,9 +49,9 @@ def evaluate_share_focal_fast(num_runs, T, k):
     return focal_count / num_runs
 
 
-ks = list(range(7, 19, 1))
+ks = list(range(7, 102, 2)) 
 T = 500_000
-num_runs = 100  # You can increase this for better accuracy
+num_runs = 1000  # You can increase this for better accuracy
 
 
 focal_shares = []
@@ -65,7 +65,7 @@ for k in ks:
 plt.figure(figsize=(8, 6))
 plt.plot(ks, focal_shares, 'x-', markersize=10)
 plt.xlabel("k (Number of price points)")
-plt.ylabel("% Focal price end cycle")
+plt.ylabel("Share focal pricing end cycle")
 plt.title("Share of Focal Pricing Outcomes vs k")
 plt.grid(True)
 plt.ylim(0, 1)

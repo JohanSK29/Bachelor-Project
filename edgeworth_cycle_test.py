@@ -6,6 +6,7 @@ from numba import config
 import numpy as np
 import matplotlib.pyplot as plt
 
+np.random.seed(123)
 
 np.set_printoptions(precision=3, suppress=True, linewidth=100)
 
@@ -45,17 +46,43 @@ def evaluate_end_converge_cycle (num_runs, T, k):
 
     # Count the occurrences of each cycle length and pattern
     cycle_length_counts = {}
+    pattern_counts_by_length = {}  # Store patterns grouped by cycle length
     for cycle_len, pattern in cycle_len_and_pattern:
         if cycle_len not in cycle_length_counts:
             cycle_length_counts[cycle_len] = 0
+            pattern_counts_by_length[cycle_len] = []  # Initialize an empty list for this cycle length
         cycle_length_counts[cycle_len] += 1
-
+        if pattern is not None:
+            pattern_counts_by_length[cycle_len].append(pattern)
 
     # Print the cycle lengths and their counts
     print("Cycle lengths and their counts:")
     for cycle_len, count in cycle_length_counts.items():
         print(f"Cycle length: {cycle_len}, Count: {count}")
+    
 
+
+
+    cycle_length_to_print = 12
+    if cycle_length_to_print in cycle_length_counts:
+        count = cycle_length_counts[cycle_length_to_print]
+        patterns = pattern_counts_by_length.get(cycle_length_to_print, [])
+
+        # Group patterns and count occurrences
+        grouped_patterns = {}
+        for pattern in patterns:
+            pattern_tuple = tuple(pattern)  # Convert to tuple for use as a dictionary key
+            if pattern_tuple not in grouped_patterns:
+                grouped_patterns[pattern_tuple] = 0
+            grouped_patterns[pattern_tuple] += 1
+
+        print(f"\nCycle length: {cycle_length_to_print}, Count: {count}")
+        print("Grouped Patterns and their counts:")
+        for pattern, pattern_count in grouped_patterns.items():
+            formatted_pattern = [f"({p1:.3f}, {p2:.3f})" for p1, p2 in pattern]
+            print(f"Pattern: {formatted_pattern}, Count: {pattern_count}")
+    else:
+        print(f"\nNo cycles of length {cycle_length_to_print} found.")
     # print the number of time a pattern occurs:
     pattern_counts = {}
     focal_pricing_count = 0
@@ -79,11 +106,12 @@ def evaluate_end_converge_cycle (num_runs, T, k):
                 non_focal_pricing_count += 1
 
     #Print the patterns and their counts
-    # print("Patterns and their counts:")
-    # for pattern, count in pattern_counts.items():
-    #     formatted_pattern = [(f"{p1:.3f}", f"{p2:.3f}") for p1, p2 in pattern]  # Format each value to 3 decimals
-    #     print(f"Pattern: {formatted_pattern}, Count: {count}")
-        
+    #print("Patterns and their counts:")
+    #for pattern, count in pattern_counts.items():
+    #    formatted_pattern = [(f"{p1:.3f}", f"{p2:.3f}") for p1, p2 in pattern]  # Format each value to 3 decimals
+    #    print(f"Pattern: {formatted_pattern}, Count: {count}")
+    
+
 
     # Print focal pricing evaluation
     print("\nFocal Pricing Evaluation:")

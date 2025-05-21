@@ -7,41 +7,64 @@ from numba import jit, config, prange
 
 np.random.seed(123)
 
+# @jit(nopython=True)
+# def simulate_random_common_profit(num_runs, T, window_size, k):
+#     # Preallocate accumulators for the moving averages
+#     cumulative_avg_common_profit = np.zeros(T - window_size - 1)
+
+#     for run in range(num_runs):
+#         print(f"Running simulation {run + 1}/{num_runs}...")
+#         # Simulate random players' profits
+#         profit_1, profit_2 = simulation_random_players(T, k)
+
+#         # Preallocate array for common profit
+#         common_profit = np.zeros(T)
+#         for i in range(T):
+#             common_profit[i] = (profit_1[i] + profit_2[i]) / 2
+
+#         # Preallocate array for moving average of common profit
+#         moving_avg_common_profit = np.zeros(T - window_size - 1)
+
+#         # Calculate moving average for this run
+#         for i in range(1, T - window_size):
+#             moving_avg_common_profit[i - 1] = np.sum(common_profit[i:i + window_size]) / window_size
+
+#         # Accumulate the moving averages
+#         cumulative_avg_common_profit += moving_avg_common_profit
+
+#     # Compute the average moving average across all runs
+#     avg_moving_avg_common_profit = cumulative_avg_common_profit / num_runs
+
+#     return avg_moving_avg_common_profit
+
 @jit(nopython=True)
-def simulate_random_common_profit(num_runs, T, window_size, k):
-    # Preallocate accumulators for the moving averages
-    cumulative_avg_common_profit = np.zeros(T - window_size - 1)
+def simulate_random_common_profit(num_runs, T, k, last_n=1000):
+    # Initialize the accumulator for the average common profit
+    cumulative_avg_common_profit_last_n = 0.0
 
     for run in range(num_runs):
         print(f"Running simulation {run + 1}/{num_runs}...")
         # Simulate random players' profits
         profit_1, profit_2 = simulation_random_players(T, k)
 
-        # Preallocate array for common profit
-        common_profit = np.zeros(T)
-        for i in range(T):
-            common_profit[i] = (profit_1[i] + profit_2[i]) / 2
+        # Convert profits to NumPy arrays (ensure compatibility with Numba)
+        profit_1 = np.array(profit_1)
+        profit_2 = np.array(profit_2)
 
-        # Preallocate array for moving average of common profit
-        moving_avg_common_profit = np.zeros(T - window_size - 1)
+        # Calculate the average common profit for the last `last_n` rounds
+        avg_common_profit_last_n = np.mean((profit_1[-last_n:] + profit_2[-last_n:]) / 2)
 
-        # Calculate moving average for this run
-        for i in range(1, T - window_size):
-            moving_avg_common_profit[i - 1] = np.sum(common_profit[i:i + window_size]) / window_size
+        # Accumulate the average common profit
+        cumulative_avg_common_profit_last_n += avg_common_profit_last_n
 
-        # Accumulate the moving averages
-        cumulative_avg_common_profit += moving_avg_common_profit
-
-    # Compute the average moving average across all runs
-    avg_moving_avg_common_profit = cumulative_avg_common_profit / num_runs
-
-    return avg_moving_avg_common_profit
+    # Return the average common profit across all runs
+    return cumulative_avg_common_profit_last_n / num_runs
 
 # Parameters
 num_runs = 1000
 T = 500_000
 window_size = 1000
-k = 49
+k = 100001
 
 # Calculate k-1 for the title
 k_minus_1 = k - 1

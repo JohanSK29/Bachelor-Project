@@ -4,7 +4,7 @@ import matplotlib as plt
 from numba import jit, config, prange
 
 
-np.random.seed(999)  # For reproducibility
+np.random.seed(123)  # For reproducibility
 
 
 config.DISABLE_JIT = False

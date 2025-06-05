@@ -3,6 +3,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from simulation_newest_main import simulation_q_learning
+from simulation_newest_main import simulation_random_players
 from numba import jit
 
 # ---------------------------------------------------------------------------------------------------
@@ -32,7 +33,7 @@ def average_common_profit_last_window(k, T, last_window, num_runs):
 
     for run_idx in range(num_runs):
         print(f"[k = {k}]  run {run_idx+1}/{num_runs} …")
-        Q1, Q2, profit_1, profit_2, price_1, price_2 = simulation_q_learning(T, k)
+        profit_1, profit_2= simulation_q_learning(T, k)
 
         # Convert to numpy arrays for easy slicing:
         profit_1 = np.array(profit_1)
